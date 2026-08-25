@@ -1,0 +1,51 @@
+<html>
+
+<head>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+
+
+    <!-- MENU FLUTUANTE -->
+    <select id="select" style="
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 9999;
+    padding: 10px;
+    font-size: 18px;
+">
+        <option value="1">opção 1</option>
+        <option value="2">opção 2</option>
+    </select>
+
+    <a-scene embedded arjs="sourceType: webcam;">
+
+        <a-marker preset="hiro">
+            <a-gltf-model id="marker1" src="tokyo_otemachi_building.glb" position="0 0 0"
+                scale="0.008 0.008 0.008" rotation="0 0 0">
+            </a-gltf-model>
+        </a-marker>
+
+        <a-entity camera></a-entity>
+    </a-scene>
+    <script>
+        const select = document.getElementById("select");
+        const marker1 = document.getElementById("marker1");
+
+        select.addEventListener("change", () => {
+            if (select.value === "1") {
+                marker1.setAttribute("src", "tokyo_otemachi_building.glb");
+            } else {
+                marker1.setAttribute("src", "modern_building_002.glb");
+                marker1.setAttribute("position", "0 0 0");
+            }
+        });
+    </script>
+
+
+</body>
+
+</html>

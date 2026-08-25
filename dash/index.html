@@ -1,0 +1,52 @@
+<html>
+<head>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+
+
+<iframe id="dashboard"
+    title="Dashboard Comercial"
+    src="https://app.powerbi.com/view?r=eyJrIjoiOTRkMzZkNGYtNjZjNS00YzAzLTlmOWUtOTI2ZWY2MDQ0OTgwIiwidCI6IjE4Njc3OGFjLWJjNjMtNGE0My1iMmVlLThiMTk0MWVjYTRhOSJ9"
+    frameborder="0" allowFullScreen="true"
+    style="
+        display:none;
+        position:fixed;
+        top:10%;
+        left:10%;
+        width:80%;
+        height:80%;
+        z-index:9999;
+        background:white;
+    ">
+</iframe>
+
+<!-- CENA AR -->
+<a-scene embedded arjs="sourceType: webcam;">
+
+    <a-marker preset="hiro" id="hiroMarker">
+        <a-box color="yellow" position="0 0 0"></a-box>
+    </a-marker>
+
+    <a-entity camera></a-entity>
+</a-scene>
+
+<script>
+    const marker = document.getElementById("hiroMarker");
+    const dash = document.getElementById("dashboard");
+
+    marker.addEventListener("markerFound", () => {
+        console.log("Hiro detectado!");
+        dash.style.display = "block";
+    });
+
+    marker.addEventListener("markerLost", () => {
+        console.log("Hiro perdido!");
+        dash.style.display = "none";
+    });
+</script>
+
+</body>
+</html>
