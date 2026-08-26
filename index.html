@@ -11,17 +11,32 @@
     <!-- <a-scene embedded arjs="sourceType: webcam;">
 
         <a-marker preset="hiro">
-            <a-gltf-model id="marker1" src="heart.glb" position="0 0 0"
-                scale="0.008 0.008 0.008" rotation="0 0 0">
+            <a-gltf-model id="marker1" src="heart.glb" position="0 0 0" scale="0.008 0.008 0.008" rotation="0 0 0">
             </a-gltf-model>
         </a-marker>
 
         <a-entity camera></a-entity>
-    </a-scene>  -->
+    </a-scene> -->
 
 
 
-    <a-scene vr-mode-ui="enabled: false" embedded
+    <a-scene vr-mode-ui="enabled: false" embedded arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;">
+
+        <a-entity gps-entity-place="latitude: -20.541819; longitude: -47.453347;">
+
+            <a-gltf-image src="https://i.postimg.cc/pr2NVs8r/image-2.png" scale="0.002 0.002 0.002" rotation="-90 0 0"
+
+                look-at="[gps-camera]"></a-gltf-img>
+
+        </a-entity>
+
+        <a-camera gps-camera rotation-reader></a-camera>
+
+    </a-scene>
+
+
+
+    <!-- <a-scene vr-mode-ui="enabled: false" embedded
         arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;">
 
         <a-entity gps-entity-place="latitude: 0; longitude: 0;">
@@ -43,7 +58,7 @@
                 entity.setAttribute('gps-entity-place', `latitude: ${lat}; longitude: ${lon}`);
             });
         };
-    </script>
+    </script> -->
 
 
 
