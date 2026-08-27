@@ -9,17 +9,18 @@
 
 <iframe id="dashboard"
     title="Dashboard Comercial"
-    src="https://app.powerbi.com/view?r=eyJrIjoiOTRkMzZkNGYtNjZjNS00YzAzLTlmOWUtOTI2ZWY2MDQ0OTgwIiwidCI6IjE4Njc3OGFjLWJjNjMtNGE0My1iMmVlLThiMTk0MWVjYTRhOSJ9"
-    frameborder="0" allowFullScreen="true"
+    src="https://ailtonbarreto.github.io/diario-da-obra/" frameborder="0" allowFullScreen="true"
     style="
-        display:none;
+        display:block;
         position:fixed;
         top:10%;
+        border-radius: 1vw;
         left:10%;
         width:80%;
         height:80%;
         z-index:9999;
         background:white;
+        opacity: 0.9;
     ">
 </iframe>
 
@@ -27,7 +28,7 @@
 <a-scene embedded arjs="sourceType: webcam;">
 
     <a-marker preset="hiro" id="hiroMarker">
-        <a-box color="yellow" position="0 0 0"></a-box>
+        <!-- <a-box color="transparent" position="0 0 0"></a-box> -->
     </a-marker>
 
     <a-entity camera></a-entity>
