@@ -12,27 +12,16 @@
     <a-scene vr-mode-ui="enabled: false" embedded
         arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;">
 
-        <a-entity gps-entity-place="latitude: 0; longitude: 0;">
-            <a-gltf-model src="../glb/heart.glb" scale="0.003 0.003 0.003" rotation="0 0 0">
+        <a-entity position="0 -0.5 -1">
+            <a-gltf-model src="../glb/heart.glb" scale="0.003 0.003 0.03" rotation="0 0 0">
             </a-gltf-model>
         </a-entity>
+
 
 
         <a-camera gps-camera rotation-reader></a-camera>
 
     </a-scene>
-
-    <script>
-        window.onload = () => {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const lat = pos.coords.latitude;
-                const lon = pos.coords.longitude;
-
-                const entity = document.querySelector('[gps-entity-place]');
-                entity.setAttribute('gps-entity-place', `latitude: ${lat}; longitude: ${lon}`);
-            });
-        };
-    </script>
 
 
 
