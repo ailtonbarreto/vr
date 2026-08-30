@@ -13,21 +13,55 @@
         arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
     >
 
-        <!-- Objeto fixo na frente da câmera -->
-        <!-- 3 metros à frente (Z = -3) -->
-        <!-- No chão (Y = -1.6) -->
-        <a-entity position="0 1.5 -4">
+        <!-- Objeto que será movido pelo toque -->
+        <a-entity id="objeto" position="0 -1.6 -3">
             <a-gltf-model 
-                src="./glb/sofa.glb"
-                scale="2 2 2"
-                rotation="0 0 0">
+                src="../glb/heart.glb"
+                scale="0.003 0.003 0.003">
             </a-gltf-model>
         </a-entity>
 
-        <!-- Câmera normal -->
         <a-camera></a-camera>
 
     </a-scene>
+
+    <script>
+        // Quando o usuário toca na tela
+        window.addEventListener("touchstart", function (e) {
+
+            const touch = e.touches[0];
+
+            // Normaliza coordenadas da tela (0 a 1)
+            const x = touch.clientX / window.innerWidth;
+            const y = touch.clientY / window.innerHeight;
+
+            // Converte para coordenadas 3D
+            const camera = document.querySelector("a-camera").object3D;
+            const objeto = document.querySelector("#objeto").object3D;
+
+            // Cria um vetor na direção do toque
+            const vector = new THREE.Vector3(
+                (x - 0.5) * 2,
+                -(y - 0.5) * 2,
+                -1
+            );
+
+            vector.unproject(camera);
+
+            // Define distância fixa (3 metros)
+            const distance = 3;
+
+            // Calcula nova posição
+            const dir = vector.sub(camera.position).normalize();
+            const newPos = camera.position.clone().add(dir.multiplyScalar(distance));
+
+            // Coloca o objeto no chão (Y = -1.6)
+            newPos.y = camera.position.y - 1.6;
+
+            // Atualiza posição do objeto
+            objeto.position.copy(newPos);
+        });
+    </script>
 
 </body>
 
