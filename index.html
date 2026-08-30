@@ -13,19 +13,19 @@
         arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
     >
 
-        <!-- Marcador Hiro -->
-        <a-marker preset="hiro">
-            <a-entity>
-                <a-gltf-model 
-                    src="./glb/ironman.glb"
-                    scale="1 1 1"
-                    rotation="0 0 0"
-                ></a-gltf-model>
-            </a-entity>
-        </a-marker>
+        <!-- Objeto fixo na frente da câmera -->
+        <!-- 3 metros à frente (Z = -3) -->
+        <!-- No chão (Y = -1.6) -->
+        <a-entity position="0 -1.6 -3">
+            <a-gltf-model 
+                src="./glb/heart.glb"
+                scale="0.003 0.003 0.003"
+                rotation="0 0 0">
+            </a-gltf-model>
+        </a-entity>
 
         <!-- Câmera normal -->
-        <a-entity camera></a-entity>
+        <a-camera></a-camera>
 
     </a-scene>
 
