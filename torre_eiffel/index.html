@@ -19,18 +19,17 @@
 
         <a-camera gps-camera rotation-reader></a-camera>
 
-
         <a-entity id="objeto"
-            gps-entity-place="latitude: -20.541335; longitude: -47.454255; altitude: 115">
-            <a-gltf-model src="../glb/eiffel_tower.glb" scale="1 1 1" rotation="0 45 0"></a-gltf-model>
+            gps-entity-place="latitude: -20.5623406; longitude: -47.4072002; altitude: 210">
+            <a-gltf-model src="../glb/eiffel_tower.glb" scale="2 2 2" rotation="0 45 0"></a-gltf-model>
         </a-entity>
 
     </a-scene>
 
     <script>
-        // Função para calcular distância entre duas coordenadas (Haversine)
+    
         function calcularDistancia(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; // raio da Terra em metros
+            const R = 6371e3; 
             const toRad = x => x * Math.PI / 180;
 
             const dLat = toRad(lat2 - lat1);
