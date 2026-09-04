@@ -13,7 +13,7 @@
         arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
     >
 
-        <!-- Objeto que será movido e escalado -->
+        <!-- Objeto que será movido, escalado e girado -->
         <a-entity id="objeto" position="0 1 -4" rotation="0 -90 0">
             <a-gltf-model 
                 id="modelo"
@@ -31,6 +31,9 @@
         let pinchStartDistance = 0;
         let initialScale = 0.0008;
 
+        let initialAngle = 0;
+        let currentRotationY = -90;
+
         const objeto = document.querySelector("#objeto").object3D;
         const modelo = document.querySelector("#modelo");
 
@@ -41,6 +44,13 @@
             return Math.sqrt(dx * dx + dy * dy);
         }
 
+        // Ângulo entre dois dedos
+        function getPinchAngle(e) {
+            const dx = e.touches[1].clientX - e.touches[0].clientX;
+            const dy = e.touches[1].clientY - e.touches[0].clientY;
+            return Math.atan2(dy, dx);
+        }
+
         // Início do toque
         window.addEventListener("touchstart", e => {
             if (e.touches.length === 1) {
@@ -48,6 +58,8 @@
             } else if (e.touches.length === 2) {
                 pinchStartDistance = getPinchDistance(e);
                 initialScale = modelo.getAttribute("scale").x;
+
+                initialAngle = getPinchAngle(e);
             }
         });
 
@@ -59,11 +71,12 @@
         // Movimento
         window.addEventListener("touchmove", e => {
 
-            // PINÇA (zoom)
+            // PINÇA (zoom + rotação)
             if (e.touches.length === 2) {
+
+                // Zoom
                 const pinchDistance = getPinchDistance(e);
                 const scaleFactor = pinchDistance / pinchStartDistance;
-
                 const newScale = initialScale * scaleFactor;
 
                 modelo.setAttribute("scale", {
@@ -71,6 +84,14 @@
                     y: newScale,
                     z: newScale
                 });
+
+                // Rotação
+                const angle = getPinchAngle(e);
+                const angleDiff = angle - initialAngle;
+
+                const degrees = THREE.Math.radToDeg(angleDiff);
+
+                objeto.rotation.y = currentRotationY + degrees;
 
                 return;
             }
@@ -88,13 +109,19 @@
             const vector = new THREE.Vector3(x, y, -1);
             vector.unproject(camera);
 
-            const distance = 3; // distância fixa da câmera
+            const distance = 3;
 
             const dir = vector.sub(camera.position).normalize();
             const newPos = camera.position.clone().add(dir.multiplyScalar(distance));
 
             objeto.position.copy(newPos);
         });
+
+        // Salva rotação final ao soltar os dedos
+        window.addEventListener("touchend", () => {
+            currentRotationY = objeto.rotation.y;
+        });
+
     </script>
 
 </body>
