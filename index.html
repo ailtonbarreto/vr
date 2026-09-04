@@ -5,12 +5,25 @@
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
 
     <style>
-        .controls {
+        /* Botões de rotação (embaixo) */
+        .controls-bottom {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
+            gap: 20px;
+            z-index: 9999;
+        }
+
+        /* Barra lateral direita */
+        .controls-side {
+            position: fixed;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
             gap: 20px;
             z-index: 9999;
         }
@@ -22,6 +35,7 @@
             border-radius: 10px;
             font-size: 20px;
             user-select: none;
+            text-align: center;
         }
 
         .btn:active {
@@ -32,9 +46,16 @@
 
 <body style="margin: 0; overflow: hidden;">
 
-    <div class="controls">
+    <!-- Botões de rotação -->
+    <div class="controls-bottom">
         <div class="btn" id="rotateLeft">⟲</div>
         <div class="btn" id="rotateRight">⟳</div>
+    </div>
+
+    <!-- Barra lateral para mover para cima/baixo -->
+    <div class="controls-side">
+        <div class="btn" id="moveUp">⬆</div>
+        <div class="btn" id="moveDown">⬇</div>
     </div>
 
     <a-scene
@@ -101,25 +122,24 @@
                 return;
             }
 
-            // MOVER X + Y + manter Z fixo
+            // MOVER X + Z (arrastar)
             if (!dragging || e.touches.length !== 1) return;
 
             const touch = e.touches[0];
 
             const xNorm = (touch.clientX / window.innerWidth) * 2 - 1;
-            const yNorm = -(touch.clientY / window.innerHeight) * 2 + 1;
 
             const camera = document.querySelector("a-camera").object3D;
 
-            const vector = new THREE.Vector3(xNorm, yNorm, -1);
+            const vector = new THREE.Vector3(xNorm, 0, -1);
             vector.unproject(camera);
 
-            const distance = 3; // distância fixa da câmera
-
+            const distance = 3;
             const dir = vector.sub(camera.position).normalize();
             const newPos = camera.position.clone().add(dir.multiplyScalar(distance));
 
-            objeto.position.copy(newPos);
+            objeto.position.x = newPos.x;
+            objeto.position.z = newPos.z;
         });
 
         /* -------------------------
@@ -135,6 +155,21 @@
 
         rotateRight.addEventListener("click", () => {
             objeto.rotation.y -= THREE.Math.degToRad(10);
+        });
+
+        /* -------------------------
+           BOTÕES DE MOVER PARA CIMA/BAIXO
+        -------------------------- */
+
+        const moveUp = document.querySelector("#moveUp");
+        const moveDown = document.querySelector("#moveDown");
+
+        moveUp.addEventListener("click", () => {
+            objeto.position.y += 0.2;
+        });
+
+        moveDown.addEventListener("click", () => {
+            objeto.position.y -= 0.2;
         });
 
     </script>
