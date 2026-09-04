@@ -3,9 +3,41 @@
 <head>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+
+    <style>
+        /* Botões de controle */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 9999;
+        }
+
+        .btn {
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 20px;
+            user-select: none;
+        }
+
+        .btn:active {
+            background: rgba(0,0,0,0.9);
+        }
+    </style>
 </head>
 
 <body style="margin: 0; overflow: hidden;">
+
+    <!-- Botões na tela -->
+    <div class="controls">
+        <div class="btn" id="rotateLeft">⟲</div>
+        <div class="btn" id="rotateRight">⟳</div>
+    </div>
 
     <a-scene
         vr-mode-ui="enabled: false"
@@ -31,50 +63,34 @@
         let pinchStartDistance = 0;
         let initialScale = 0.0008;
 
-        let initialAngle = 0;
-        let currentRotationY = -90;
-
         const objeto = document.querySelector("#objeto").object3D;
         const modelo = document.querySelector("#modelo");
 
-        // Distância entre dois dedos
+        /* -------------------------
+           ZOOM COM PINÇA
+        -------------------------- */
+
         function getPinchDistance(e) {
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             return Math.sqrt(dx * dx + dy * dy);
         }
 
-        // Ângulo entre dois dedos
-        function getPinchAngle(e) {
-            const dx = e.touches[1].clientX - e.touches[0].clientX;
-            const dy = e.touches[1].clientY - e.touches[0].clientY;
-            return Math.atan2(dy, dx);
-        }
-
-        // Início do toque
         window.addEventListener("touchstart", e => {
-            if (e.touches.length === 1) {
-                dragging = true;
-            } else if (e.touches.length === 2) {
+            if (e.touches.length === 2) {
                 pinchStartDistance = getPinchDistance(e);
                 initialScale = modelo.getAttribute("scale").x;
-
-                initialAngle = getPinchAngle(e);
+            } else if (e.touches.length === 1) {
+                dragging = true;
             }
         });
 
-        // Fim do toque
-        window.addEventListener("touchend", () => {
-            dragging = false;
-        });
+        window.addEventListener("touchend", () => dragging = false);
 
-        // Movimento
         window.addEventListener("touchmove", e => {
 
-            // PINÇA (zoom + rotação)
+            // ZOOM
             if (e.touches.length === 2) {
-
-                // Zoom
                 const pinchDistance = getPinchDistance(e);
                 const scaleFactor = pinchDistance / pinchStartDistance;
                 const newScale = initialScale * scaleFactor;
@@ -85,18 +101,10 @@
                     z: newScale
                 });
 
-                // Rotação
-                const angle = getPinchAngle(e);
-                const angleDiff = angle - initialAngle;
-
-                const degrees = THREE.Math.radToDeg(angleDiff);
-
-                objeto.rotation.y = currentRotationY + degrees;
-
                 return;
             }
 
-            // ARRASTAR (mover)
+            // MOVER
             if (!dragging || e.touches.length !== 1) return;
 
             const touch = e.touches[0];
@@ -110,16 +118,25 @@
             vector.unproject(camera);
 
             const distance = 3;
-
             const dir = vector.sub(camera.position).normalize();
             const newPos = camera.position.clone().add(dir.multiplyScalar(distance));
 
             objeto.position.copy(newPos);
         });
 
-        // Salva rotação final ao soltar os dedos
-        window.addEventListener("touchend", () => {
-            currentRotationY = objeto.rotation.y;
+        /* -------------------------
+           BOTÕES DE ROTAÇÃO
+        -------------------------- */
+
+        const rotateLeft = document.querySelector("#rotateLeft");
+        const rotateRight = document.querySelector("#rotateRight");
+
+        rotateLeft.addEventListener("click", () => {
+            objeto.rotation.y += THREE.Math.degToRad(10);
+        });
+
+        rotateRight.addEventListener("click", () => {
+            objeto.rotation.y -= THREE.Math.degToRad(10);
         });
 
     </script>
