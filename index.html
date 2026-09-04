@@ -5,7 +5,6 @@
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
 
     <style>
-        /* Botões de controle */
         .controls {
             position: fixed;
             bottom: 20px;
@@ -33,7 +32,6 @@
 
 <body style="margin: 0; overflow: hidden;">
 
-    <!-- Botões na tela -->
     <div class="controls">
         <div class="btn" id="rotateLeft">⟲</div>
         <div class="btn" id="rotateRight">⟳</div>
@@ -45,7 +43,6 @@
         arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
     >
 
-        <!-- Objeto que será movido, escalado e girado -->
         <a-entity id="objeto" position="0 1 -4" rotation="0 -90 0">
             <a-gltf-model 
                 id="modelo"
@@ -104,20 +101,21 @@
                 return;
             }
 
-            // MOVER
+            // MOVER X + Y + manter Z fixo
             if (!dragging || e.touches.length !== 1) return;
 
             const touch = e.touches[0];
 
-            const x = (touch.clientX / window.innerWidth) * 2 - 1;
-            const y = -(touch.clientY / window.innerHeight) * 2 + 1;
+            const xNorm = (touch.clientX / window.innerWidth) * 2 - 1;
+            const yNorm = -(touch.clientY / window.innerHeight) * 2 + 1;
 
             const camera = document.querySelector("a-camera").object3D;
 
-            const vector = new THREE.Vector3(x, y, -1);
+            const vector = new THREE.Vector3(xNorm, yNorm, -1);
             vector.unproject(camera);
 
-            const distance = 3;
+            const distance = 3; // distância fixa da câmera
+
             const dir = vector.sub(camera.position).normalize();
             const newPos = camera.position.clone().add(dir.multiplyScalar(distance));
 
