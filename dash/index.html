@@ -12,12 +12,13 @@
     src="https://ailtonbarreto.github.io/diario-da-obra/" frameborder="0" allowFullScreen="true"
     style="
         display:block;
+        visibility:hidden;
         position:fixed;
-        top:10%;
+        top:5%;
         border-radius: 1vw;
-        left:10%;
-        width:80%;
-        height:80%;
+        left:5%;
+        width:90%;
+        height:90%;
         z-index:9999;
         background:white;
         opacity: 0.9;
@@ -27,8 +28,8 @@
 <!-- CENA AR -->
 <a-scene embedded arjs="sourceType: webcam;">
 
-    <a-marker preset="hiro" id="hiroMarker">
-        <!-- <a-box color="transparent" position="0 0 0"></a-box> -->
+    <a-marker id="hiroMarker" type="pattern" url="marker.patt">
+
     </a-marker>
 
     <a-entity camera></a-entity>
@@ -41,6 +42,7 @@
     marker.addEventListener("markerFound", () => {
         console.log("Hiro detectado!");
         dash.style.display = "block";
+        dash.style.visibility = "visible";
     });
 
     marker.addEventListener("markerLost", () => {
