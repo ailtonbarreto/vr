@@ -96,20 +96,14 @@
 
         <select id="modelSelect">
 
-            <option value="./glb/casa_10x8.glb">Casa 10x8</option>
+            <option value="">Selecione um modelo</option>
+            <option value="./glb/chevrolet_corvette_stingray.glb">Corvete</option>
+
+            <option value="./glb/ferrari_f430.glb">Ferrari F430</option>
+            <option value="./glb/kawasaki_zx10r.glb">Kawasaki zx10r</option>
+            <option value="./glb/mclaren_formula1.glb">McLaren MP5</option>
 
 
-
-            <option value="./glb/modelo_de_casa.glb">Casa Modelo</option>
-            <option value="./glb/ferrari.glb">Ferrari California</option>
-            <option value="./glb/ferrari_spider.glb">Ferrari Spider</option>
-
-            <option value="./glb/wtc_3.glb">World Trade Center</option>
-            <option value="./glb/build.glb">Building</option>
-            <option value="./glb/eiffel_tower.glb">Eiffel Tower</option>
-            <option value="./glb/rose.glb">Flor</option>
-            <option value="./glb/heart.glb">Coração</option>
-            <option value="./glb/ironman.glb">Homem de Ferro</option>
 
         </select>
     </div>
@@ -152,8 +146,8 @@
         arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;">
 
         <a-entity id="objeto" position="0 1 -4" rotation="0 -90 0">
-            <!-- <a-gltf-model id="modelo" src="./glb/casa_10x8.glb" scale="0.0008 0.0008 0.0008"> -->
-            <a-gltf-model id="modelo" src="./glb/casa_10x8.glb" scale="3 3 3">
+
+            <a-gltf-model id="modelo" src="" scale="1 1 1">
 
             </a-gltf-model>
         </a-entity>
@@ -165,7 +159,7 @@
     <script>
         let dragging = false;
         let pinchStartDistance = 0;
-        let initialScale = 10;
+        let initialScale = 1;
 
         const objeto = document.querySelector("#objeto").object3D;
         const modelo = document.querySelector("#modelo");
@@ -280,7 +274,7 @@
             modelo.setAttribute("src", newModelURL);
 
             // opcional: resetar escala ao trocar
-            modelo.setAttribute("scale", { x: 0.0008, y: 0.0008, z: 0.0008 });
+            modelo.setAttribute("scale", { x: 1, y: 1, z: 1 });
 
             // opcional: resetar rotação
             objeto.rotation.set(0, -90 * Math.PI / 180, 0);
