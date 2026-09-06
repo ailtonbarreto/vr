@@ -96,15 +96,13 @@
 
         <select id="modelSelect">
             <option value="">Selecione um modelo</option>
-            <option value="../glb/chair2.glb">Cadeira 2</option>
-            <option value="../glb/tv.glb">TV</option>
-            <option value="../glb/poltrona.glb">Poltrona</option>
-            <option value="../glb/sofa.glb">Sofa</option>
-            <option value="../glb/chair.glb">Cadeira</option>
-            <option value="../glb/bed.glb">Cama</option>
-
-
-
+            <option value="../glb/build.glb">Edifício 1</option>
+            <option value="../glb/casa_10x8.glb">Casa 1</option>
+            <option value="../glb/eiffel_tower.glb">Torre Eiffel</option>
+            <option value="../glb/modelo_de_casa.glb">Casa 2</option>
+            <option value="../glb/tokyo_otemachi_building.glb">Torre Tokyo Otemachi</option>
+            <option value="../glb/wtc1.glb">World Trade Center</option>
+           
         </select>
     </div>
 
@@ -148,7 +146,7 @@
 
         <a-entity id="objeto" position="0 1 -4" rotation="0 -90 0">
             <!-- <a-gltf-model id="modelo" src="./glb/casa_10x8.glb" scale="0.0008 0.0008 0.0008"> -->
-            <a-gltf-model id="modelo" src="" scale="2 2 2">
+            <a-gltf-model id="modelo" src="" scale="0.5 0.5 0.5">
 
             </a-gltf-model>
         </a-entity>
@@ -160,7 +158,7 @@
     <script>
         let dragging = false;
         let pinchStartDistance = 0;
-        let initialScale = 2;
+        let initialScale = 0.5;
 
         const objeto = document.querySelector("#objeto").object3D;
         const modelo = document.querySelector("#modelo");
@@ -275,7 +273,7 @@
             modelo.setAttribute("src", newModelURL);
 
             // opcional: resetar escala ao trocar
-            modelo.setAttribute("scale", { x: 2, y: 2, z: 2 });
+            modelo.setAttribute("scale", { x: 0.5, y: 0.5, z: 0.5 });
 
             // opcional: resetar rotação
             objeto.rotation.set(0, -90 * Math.PI / 180, 0);
