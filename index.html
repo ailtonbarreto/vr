@@ -19,6 +19,14 @@
             cursor: pointer;
         }
 
+        select {
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 4px;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
         .opcoes {
             position: fixed;
             top: 20px;
@@ -33,8 +41,7 @@
         .controls_rolagem {
             position: fixed;
             top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            right: 15px;
             display: flex;
             gap: 20px;
             z-index: 9999;
@@ -43,8 +50,8 @@
 
         .controls-zoom {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 110px;
+            left: 20px;
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -80,7 +87,7 @@
         .btn {
             background: rgba(0, 0, 0, 0.6);
             color: white;
-            padding: 15px 20px;
+            padding: 15px;
             border-radius: 10px;
             font-size: 20px;
             user-select: none;
@@ -108,13 +115,19 @@
 
 
         </select>
+
+        <div class="controls-zoom">
+            <div class="btn" id="zoomIn">＋</div>
+            <div class="btn" id="zoomOut">－</div>
+        </div>
     </div>
 
 
     <!-- Rotação Y -->
     <div class="controls-bottom">
-        <div class="btn" id="rotateLeft">⟲</div>
-        <div class="btn" id="rotateRight">⟳</div>
+
+        <div class="btn" id="rotateRight">◀️</div>
+        <div class="btn" id="rotateLeft">▶️</div>
     </div>
 
     <div class="controls_rolagem">
@@ -135,12 +148,6 @@
         <div class="btn" id="moveUp">🔼</div>
         <div class="btn" id="moveDown">🔽</div>
 
-    </div>
-
-    <!-- Controle de zoom (canto superior direito) -->
-    <div class="controls-zoom">
-        <div class="btn" id="zoomIn">＋</div>
-        <div class="btn" id="zoomOut">－</div>
     </div>
 
 
