@@ -6,99 +6,99 @@
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
     <link rel="shortcut icon" href="vr-glasses.ico" type="image/x-icon">
-
-    <style>
-        .controls-bottom {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-            z-index: 9999;
-            cursor: pointer;
-        }
-
-        select {
-            background: rgba(0, 0, 0, 0.6);
-            color: white;
-            padding: 4px;
-            border-radius: 10px;
-            font-size: 16px;
-        }
-
-        .opcoes {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 9999;
-            background: rgba(0, 0, 0, 0.6);
-            color: white;
-            padding: 10px;
-            border-radius: 10px;
-        }
-
-        .controls_rolagem {
-            position: fixed;
-            top: 20px;
-            right: 15px;
-            display: flex;
-            gap: 20px;
-            z-index: 9999;
-            cursor: pointer;
-        }
-
-        .controls-zoom {
-            position: fixed;
-            top: 110px;
-            left: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 9999;
-            cursor: pointer;
-        }
-
-
-        .controls-side {
-            position: fixed;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 9999;
-            cursor: pointer;
-        }
-
-        .controls-leftside {
-            position: fixed;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 9999;
-            cursor: pointer;
-        }
-
-        .btn {
-            background: rgba(0, 0, 0, 0.6);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 20px;
-            user-select: none;
-            text-align: center;
-        }
-
-        .btn:active {
-            background: rgba(0, 0, 0, 0.9);
-        }
-    </style>
 </head>
+<style>
+    .controls-bottom {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 20px;
+        z-index: 9999;
+        cursor: pointer;
+    }
+
+    select {
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 4px;
+        border-radius: 10px;
+        font-size: 16px;
+    }
+
+    .opcoes {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .controls_rolagem {
+        position: fixed;
+        top: 20px;
+        right: 15px;
+        display: flex;
+        gap: 20px;
+        z-index: 9999;
+        cursor: pointer;
+    }
+
+    .controls-zoom {
+        position: fixed;
+        top: 110px;
+        left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        z-index: 9999;
+        cursor: pointer;
+    }
+
+
+    .controls-side {
+        position: fixed;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        z-index: 9999;
+        cursor: pointer;
+    }
+
+    .controls-leftside {
+        position: fixed;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        z-index: 9999;
+        cursor: pointer;
+    }
+
+    .btn {
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        font-size: 20px;
+        user-select: none;
+        text-align: center;
+    }
+
+    .btn:active {
+        background: rgba(0, 0, 0, 0.9);
+    }
+</style>
+
 
 <body style="margin: 0; overflow: hidden;">
 
