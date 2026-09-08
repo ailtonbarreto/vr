@@ -245,29 +245,29 @@
 
         /* MOVE Y */
         document.querySelector("#moveUp").addEventListener("click", () => {
-            objeto.position.y += 0.2;
+            objeto.position.y += 0.1;
         });
 
         document.querySelector("#moveDown").addEventListener("click", () => {
-            objeto.position.y -= 0.2;
+            objeto.position.y -= 0.1;
         });
 
         /* PITCH (X) */
         document.querySelector("#tiltForward").addEventListener("click", () => {
-            objeto.rotation.x += THREE.Math.degToRad(10);
+            objeto.rotation.x += THREE.Math.degToRad(5);
         });
 
         document.querySelector("#tiltBackward").addEventListener("click", () => {
-            objeto.rotation.x -= THREE.Math.degToRad(10);
+            objeto.rotation.x -= THREE.Math.degToRad(5);
         });
 
         /* ROLL (Z) — ARFAGEM REAL */
         document.querySelector("#rollRight").addEventListener("click", () => {
-            objeto.rotation.z += THREE.Math.degToRad(10);
+            objeto.rotation.z += THREE.Math.degToRad(5);
         });
 
         document.querySelector("#rollLeft").addEventListener("click", () => {
-            objeto.rotation.z -= THREE.Math.degToRad(10);
+            objeto.rotation.z -= THREE.Math.degToRad(5);
         });
 
         /* ZOOM DESKTOP (botões + e -) */
