@@ -4,119 +4,26 @@
     <meta charset="UTF-8" />
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="menu.css">
+    <script src="menu.js" defer></script>
+    <script src="hide.js" defer></script>
     <link rel="shortcut icon" href="vr-glasses.ico" type="image/x-icon">
     <title>VR Autos</title>
 </head>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        overflow: hidden;
-        height: 100vh;
-    }
-
-    .controls-bottom {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        gap: 20px;
-        z-index: 9999;
-        cursor: pointer;
-    }
-
-    select {
-        background: rgba(0, 0, 0, 0.6);
-        color: white;
-        padding: 4px;
-        border-radius: 10px;
-        font-size: 16px;
-        width: 170px;
-    }
-
-    .opcoes {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 9999;
-        background: rgba(0, 0, 0, 0.6);
-        color: white;
-        padding: 10px;
-        border-radius: 10px;
-    }
-
-    .controls_rolagem {
-        position: fixed;
-        top: 20px;
-        right: 15px;
-        display: flex;
-        gap: 20px;
-        z-index: 9999;
-        cursor: pointer;
-    }
-
-    .controls-zoom {
-        position: fixed;
-        top: 110px;
-        left: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        z-index: 9999;
-        cursor: pointer;
-    }
-
-
-    .controls-side {
-        position: fixed;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        z-index: 9999;
-        cursor: pointer;
-    }
-
-    .controls-leftside {
-        position: fixed;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        z-index: 9999;
-        cursor: pointer;
-    }
-
-    .btn {
-        background: rgba(0, 0, 0, 0.6);
-        color: white;
-        padding: 15px;
-        border-radius: 10px;
-        font-size: 20px;
-        user-select: none;
-        text-align: center;
-    }
-
-    .btn:active {
-        background: rgba(0, 0, 0, 0.9);
-    }
-</style>
-
 
 <body>
 
-    <div class="opcoes">
+    <span class="material-symbols-outlined open-menu" id="open_menu">menu</span>
+
+    <nav id="menu">
+
+        <span class="material-symbols-outlined" id="close_menu">close</span>
 
         <select id="modelSelect">
 
             <option value="">Selecione um modelo</option>
-
 
             <option value="./autos/chevrolet_corvette_stingray.glb">Corvete Stingray</option>
             <option value="./autos/ferrari_f430.glb">Ferrari F430</option>
@@ -129,10 +36,12 @@
 
         </select>
 
-        <div class="controls-zoom">
-            <div class="btn" id="zoomIn">＋</div>
-            <div class="btn" id="zoomOut">－</div>
-        </div>
+
+    </nav>
+
+    <div class="controls-zoom">
+        <div class="btn" id="zoomIn">＋</div>
+        <div class="btn" id="zoomOut">－</div>
     </div>
 
 
@@ -163,6 +72,13 @@
 
     </div>
 
+    <div class="controls-zoom">
+        <div class="material-symbols-outlined" id="ocultar">visibility_off</div>
+        <div class="material-symbols-outlined" id="mostrar" style="display: none;">visibility</div>
+
+    </div>
+
+    <!----------------------------------------------------------------------------->
 
     <a-scene vr-mode-ui="enabled: false" embedded
         arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;">
@@ -179,12 +95,46 @@
     </a-scene>
 
     <script>
+
         let dragging = false;
         let pinchStartDistance = 0;
-        let initialScale = 1;
+        let initialScale = 2;
 
         const objeto = document.querySelector("#objeto").object3D;
         const modelo = document.querySelector("#modelo");
+
+        modelo.addEventListener("model-loaded", () => {
+            // Resetar posição
+            objeto.position.set(0, 1, -4);
+
+            // Resetar rotação
+            objeto.rotation.set(
+                0,
+                THREE.Math.degToRad(-90),
+                0
+            );
+
+            // Resetar escala
+            modelo.setAttribute("scale", { x: 2, y: 2, z: 2 });
+
+            // Ajuste automático baseado no tamanho real do modelo
+            const obj = modelo.getObject3D("mesh");
+            if (!obj) return;
+
+            const box = new THREE.Box3().setFromObject(obj);
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+
+            const desiredSize = 3;
+            const scaleFactor = desiredSize / maxDim;
+
+            modelo.setAttribute("scale", {
+                x: scaleFactor,
+                y: scaleFactor,
+                z: scaleFactor
+            });
+        });
+
 
         /* ZOOM */
         function getPinchDistance(e) {
@@ -240,20 +190,20 @@
 
         /* ROT Y */
         document.querySelector("#rotateLeft").addEventListener("click", () => {
-            objeto.rotation.y += THREE.Math.degToRad(10);
+            objeto.rotation.y += THREE.Math.degToRad(5);
         });
 
         document.querySelector("#rotateRight").addEventListener("click", () => {
-            objeto.rotation.y -= THREE.Math.degToRad(10);
+            objeto.rotation.y -= THREE.Math.degToRad(5);
         });
 
         /* MOVE Y */
         document.querySelector("#moveUp").addEventListener("click", () => {
-            objeto.position.y += 0.1;
+            objeto.position.y += 0.2;
         });
 
         document.querySelector("#moveDown").addEventListener("click", () => {
-            objeto.position.y -= 0.1;
+            objeto.position.y -= 0.2;
         });
 
         /* PITCH (X) */
@@ -288,25 +238,28 @@
             modelo.setAttribute("scale", { x: scale, y: scale, z: scale });
         });
 
-        /* TROCAR MODELO PELO SELECT */
+
         document.querySelector("#modelSelect").addEventListener("change", (e) => {
+            const newModelURL = e.target.value;
+
 
             modelo.addEventListener("model-loaded", () => {
                 const obj = modelo.getObject3D("mesh");
                 if (!obj) return;
 
-                // Calcula o tamanho real do modelo
+
                 const box = new THREE.Box3().setFromObject(obj);
                 const size = box.getSize(new THREE.Vector3());
 
+
                 const maxDim = Math.max(size.x, size.y, size.z);
 
-         
-                const desiredSize = 3; 
-      
+
+                const desiredSize = 3;
+
                 const scaleFactor = desiredSize / maxDim;
 
-        
+
                 modelo.setAttribute("scale", {
                     x: scaleFactor,
                     y: scaleFactor,
@@ -314,17 +267,20 @@
                 });
             });
 
-            const newModelURL = e.target.value;
 
+            // troca o GLB
             modelo.setAttribute("src", newModelURL);
 
-            modelo.setAttribute("scale", { x: 1, y: 1, z: 1 });
+            // opcional: resetar escala ao trocar
+            modelo.setAttribute("scale", { x: 2, y: 2, z: 2 });
 
-    
+            // opcional: resetar rotação
             objeto.rotation.set(0, -90 * Math.PI / 180, 0);
 
+            // opcional: resetar posição
             objeto.position.set(0, 1, -4);
         });
+
 
 
     </script>
