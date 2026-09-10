@@ -1,6 +1,6 @@
 
 const hideBtn = document.getElementById("ocultar");
-const controls_btns = document.querySelectorAll(".btn");
+const controls_btns = document.querySelectorAll(".hide");
 const showBtn = document.getElementById("mostrar");
 
 
