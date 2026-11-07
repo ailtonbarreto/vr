@@ -436,7 +436,48 @@
     </a-scene>
 
     <script>
+        const scene = document.querySelector("a-scene");
+        const cameraEntity = scene.querySelector("[camera]");
         const modelo = document.querySelector("#modelo");
+        let horizontalFieldOfView = null;
+
+        function resizeScene() {
+            if (!scene.hasLoaded || !scene.camera || !cameraEntity) {
+                return;
+            }
+
+            scene.resize();
+            const aspectRatio = scene.camera.aspect;
+            if (!Number.isFinite(aspectRatio) || aspectRatio <= 0) {
+                return;
+            }
+
+            if (horizontalFieldOfView === null) {
+                horizontalFieldOfView = 2 * Math.atan(
+                    Math.tan(scene.camera.fov * Math.PI / 360) * aspectRatio
+                );
+            }
+
+            const verticalFieldOfView = 2 * Math.atan(
+                Math.tan(horizontalFieldOfView / 2) / aspectRatio
+            );
+            const fov = Math.min(179, Math.max(1, verticalFieldOfView * 180 / Math.PI));
+            cameraEntity.setAttribute("camera", "fov", fov);
+        }
+
+        scene.addEventListener("loaded", resizeScene, { once: true });
+        scene.addEventListener("cameraready", resizeScene, { once: true });
+        if (scene.hasLoaded) {
+            resizeScene();
+        }
+        window.addEventListener("resize", resizeScene);
+        window.addEventListener("orientationchange", resizeScene);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", resizeScene);
+        }
+        const sceneResizeObserver = new ResizeObserver(resizeScene);
+        sceneResizeObserver.observe(scene);
+
         const decreaseObjectSizeButton = document.querySelector("#decreaseObjectSize");
         const increaseObjectSizeButton = document.querySelector("#increaseObjectSize");
         const objectSizeLabel = document.querySelector("#objectSizeLabel");
