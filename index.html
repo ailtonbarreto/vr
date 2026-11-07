@@ -176,6 +176,47 @@
             opacity: 0.65;
         }
 
+        #objectSizeControls {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            color: #fff;
+            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            font-family: Arial, sans-serif;
+        }
+
+        #objectSizeControls button {
+            width: 42px;
+            height: 42px;
+            color: #06202a;
+            background: #45d6ff;
+            border: 0;
+            border-radius: 8px;
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        #objectSizeControls button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        #objectSizeLabel {
+            min-width: 82px;
+            text-align: center;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
         @media (max-width: 420px) {
             #navigationPanel {
                 gap: 10px;
@@ -192,6 +233,18 @@
                 padding: 0 10px;
                 font-size: 13px;
             }
+
+            #objectSizeControls {
+                top: 12px;
+                right: 12px;
+                gap: 6px;
+                padding: 6px;
+            }
+
+            #objectSizeControls button {
+                width: 38px;
+                height: 38px;
+            }
         }
     </style>
     <title>AR com GPS</title>
@@ -205,7 +258,7 @@
             <p>Use sua localização para centralizar o mapa. Toque no mapa ou arraste o marcador para escolher onde o objeto ficará.</p>
             <div id="locationMap" aria-label="Mapa para selecionar a posição do objeto"></div>
             <p id="locationPickerStatus" role="status" aria-live="polite">
-                Solicitaremos sua localização somente quando você tocar em “Usar minha localização”.
+                Obtendo sua localização para centralizar o mapa...
             </p>
             <div class="location-dialog-actions">
                 <button id="locateUserButton" type="button">Usar minha localização</button>
@@ -230,6 +283,12 @@
         </div>
     </nav>
 
+    <div id="objectSizeControls" role="group" aria-label="Tamanho do objeto">
+        <button id="decreaseObjectSize" type="button" aria-label="Diminuir tamanho do objeto">−</button>
+        <span id="objectSizeLabel" role="status" aria-live="polite">Tamanho: 100%</span>
+        <button id="increaseObjectSize" type="button" aria-label="Aumentar tamanho do objeto">+</button>
+    </div>
+
     <section id="navigationPanel" aria-label="Navegação até o objeto">
         <div class="direction-orb" aria-hidden="true">
             <span id="directionArrow"></span>
@@ -251,7 +310,7 @@
         <a-camera gps-camera rotation-reader></a-camera>
 
         <a-entity id="objeto"
-            gps-entity-place="latitude: -20.546606; longitude: -47.4173892; altitude: 210">
+            gps-entity-place="latitude: ; longitude: ; altitude: ">
             <a-gltf-model id="modelo" src="../construcao/eiffel_tower.glb" scale="2 2 2"
                 rotation="0 45 0"></a-gltf-model>
         </a-entity>
@@ -259,6 +318,9 @@
 
     <script>
         const modelo = document.querySelector("#modelo");
+        const decreaseObjectSizeButton = document.querySelector("#decreaseObjectSize");
+        const increaseObjectSizeButton = document.querySelector("#increaseObjectSize");
+        const objectSizeLabel = document.querySelector("#objectSizeLabel");
         const gpsEntity = document.querySelector("#objeto");
         const modelMenu = document.querySelector("#menu");
         const modelButtons = document.querySelectorAll(".model-btn");
@@ -278,12 +340,34 @@
         let destinationMarker;
         let userMarker = null;
         let selectedDestination = { ...defaultDestination };
+        let destinationSelectedManually = false;
         let currentPosition = null;
         let currentHeading = null;
         let locationWatchId = null;
         let navigationActive = false;
         let locationError = null;
         let compassMessage = "Aponte o topo do celular para encontrar a direção.";
+        let objectScaleFactor = 1;
+        const minimumObjectScale = 0.1;
+        const maximumObjectScale = 5;
+
+        function updateObjectScale() {
+            const scale = 2 * objectScaleFactor;
+            modelo.setAttribute("scale", `${scale} ${scale} ${scale}`);
+            objectSizeLabel.textContent = `Tamanho: ${Math.round(objectScaleFactor * 100)}%`;
+            decreaseObjectSizeButton.disabled = objectScaleFactor <= minimumObjectScale;
+            increaseObjectSizeButton.disabled = objectScaleFactor >= maximumObjectScale;
+        }
+
+        decreaseObjectSizeButton.addEventListener("click", () => {
+            objectScaleFactor = Math.max(minimumObjectScale, objectScaleFactor / 1.2);
+            updateObjectScale();
+        });
+
+        increaseObjectSizeButton.addEventListener("click", () => {
+            objectScaleFactor = Math.min(maximumObjectScale, objectScaleFactor * 1.2);
+            updateObjectScale();
+        });
 
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 19,
@@ -307,18 +391,21 @@
         }
 
         locationMap.on("click", event => {
+            destinationSelectedManually = true;
             updateSelectedDestination(event.latlng.lat, event.latlng.lng);
         });
 
         destinationMarker.on("dragend", () => {
             const position = destinationMarker.getLatLng();
+            destinationSelectedManually = true;
             updateSelectedDestination(position.lat, position.lng);
         });
 
-        locateUserButton.addEventListener("click", () => {
+        function locateUser(selectUserLocationAsDestination) {
             if (!navigator.geolocation) {
                 locationPickerStatus.textContent =
                     "Este navegador não disponibiliza localização. Você ainda pode marcar o objeto no mapa.";
+                locateUserButton.disabled = false;
                 return;
             }
 
@@ -337,13 +424,18 @@
                         { radius: 8, color: "#fff", weight: 2, fillColor: "#2563eb", fillOpacity: 1 }
                     ).addTo(locationMap).bindPopup("Sua localização");
                 }
+                if (selectUserLocationAsDestination && !destinationSelectedManually) {
+                    updateSelectedDestination(currentPosition.latitude, currentPosition.longitude);
+                }
                 locationMap.setView(
                     [currentPosition.latitude, currentPosition.longitude],
                     17
                 );
                 locateUserButton.disabled = false;
                 locationPickerStatus.textContent =
-                    "Sua localização está no mapa. Toque ou arraste o marcador para definir o objeto.";
+                    selectUserLocationAsDestination && !destinationSelectedManually
+                        ? "Mapa centralizado na sua localização. O marcador do objeto começou ali; mova-o se necessário."
+                        : "Sua localização está no mapa. Toque ou arraste o marcador para definir o objeto.";
                 updateNavigation();
             }, error => {
                 const messages = {
@@ -359,6 +451,10 @@
                 maximumAge: 1000,
                 timeout: 15000
             });
+        }
+
+        locateUserButton.addEventListener("click", () => {
+            locateUser(false);
         });
 
         confirmLocationButton.addEventListener("click", () => {
@@ -375,6 +471,8 @@
         });
 
         requestAnimationFrame(() => locationMap.invalidateSize());
+        locateUserButton.disabled = true;
+        locateUser(true);
 
         modelButtons.forEach(button => {
             button.addEventListener("click", () => {
