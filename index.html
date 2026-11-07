@@ -392,13 +392,13 @@
 
         <div id="modelButtons">
 
-            <button class="model-btn active" data-src="itens/eiffel_tower.glb">Torre Eiffel</button>
-            <button class="model-btn" data-src="itens/lamborghini_aventador.glb">Lamborghini Aventador</button>
-            <button class="model-btn" data-src="itens/ferrari_f430.glb">Ferrari F430</button>
-            <button class="model-btn" data-src="itens/sukhoi.glb">Caça Sukhoi</button>
-            <button class="model-btn" data-src="itens/wtc.glb">World Trade Center</button>
-            <button class="model-btn" data-src="itens/torre_picasso_madrid.glb">Torre Picasso</button>
-            <button class="model-btn" data-src="itens/Burj_al_arab.glb">Burj Al Arab</button>
+            <button class="model-btn active" data-src="./itens/eiffel_tower.glb">Torre Eiffel</button>
+            <button class="model-btn" data-src="./itens/lamborghini_aventador.glb">Lamborghini Aventador</button>
+            <button class="model-btn" data-src="./itens/ferrari_f430.glb">Ferrari F430</button>
+            <button class="model-btn" data-src="./itens/sukhoi.glb">Caça Sukhoi</button>
+            <button class="model-btn" data-src="./itens/wtc.glb">World Trade Center</button>
+            <button class="model-btn" data-src="./itens/torre_picasso_madrid.glb">Torre Picasso</button>
+            <button class="model-btn" data-src="./itens/Burj_al_arab.glb">Burj Al Arab</button>
             
         </div>
     </nav>
@@ -596,7 +596,10 @@
 
         modelButtons.forEach(button => {
             button.addEventListener("click", () => {
-                modelo.setAttribute("src", button.dataset.src);
+                modelo.setAttribute(
+                    "src",
+                    new URL(button.dataset.src, document.baseURI).href
+                );
                 modelButtons.forEach(item => item.classList.remove("active"));
                 button.classList.add("active");
                 modelMenu.classList.remove("open");
