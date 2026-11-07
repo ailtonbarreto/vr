@@ -429,8 +429,7 @@
     >
         <a-camera gps-camera rotation-reader></a-camera>
 
-        <a-entity id="objeto"
-            gps-entity-place="latitude: -20.546606; longitude: -47.4173892; altitude: 210">
+        <a-entity id="objeto">
             <a-gltf-model id="modelo" src="./itens/eiffel_tower.glb" scale="2 2 2"
                 rotation="0 45 0"></a-gltf-model>
         </a-entity>
@@ -452,14 +451,10 @@
         const locationPickerStatus = document.querySelector("#locationPickerStatus");
         const locateUserButton = document.querySelector("#locateUserButton");
         const confirmLocationButton = document.querySelector("#confirmLocationButton");
-        const defaultDestination = { latitude: -20.546606, longitude: -47.4173892, altitude: 210 };
-        const locationMap = L.map("locationMap").setView(
-            [defaultDestination.latitude, defaultDestination.longitude],
-            15
-        );
+        const locationMap = L.map("locationMap").setView([0, 0], 2);
         let destinationMarker;
         let userMarker = null;
-        let selectedDestination = { ...defaultDestination };
+        let selectedDestination = null;
         let destinationSelectedManually = false;
         let currentPosition = null;
         let currentHeading = null;
@@ -472,9 +467,12 @@
         const maximumObjectScale = 5;
 
         function setObjectDestination(destination) {
+            const altitude = Number.isFinite(destination.altitude)
+                ? `; altitude: ${destination.altitude}`
+                : "";
             gpsEntity.setAttribute(
                 "gps-entity-place",
-                `latitude: ${destination.latitude}; longitude: ${destination.longitude}; altitude: ${destination.altitude}`
+                `latitude: ${destination.latitude}; longitude: ${destination.longitude}${altitude}`
             );
         }
 
@@ -501,31 +499,34 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(locationMap);
 
-        destinationMarker = L.marker(
-            [selectedDestination.latitude, selectedDestination.longitude],
-            { draggable: true }
-        ).addTo(locationMap);
-
         function updateSelectedDestination(latitude, longitude) {
             selectedDestination = {
                 latitude,
                 longitude,
-                altitude: defaultDestination.altitude
+                altitude: currentPosition ? currentPosition.altitude : null
             };
-            destinationMarker.setLatLng([latitude, longitude]);
+            if (!destinationMarker) {
+                destinationMarker = L.marker([latitude, longitude], { draggable: true })
+                    .addTo(locationMap)
+                    .on("dragend", () => {
+                        const position = destinationMarker.getLatLng();
+                        destinationSelectedManually = true;
+                        updateSelectedDestination(position.lat, position.lng);
+                    });
+            } else {
+                destinationMarker.setLatLng([latitude, longitude]);
+            }
+
+            const altitudeStatus = Number.isFinite(selectedDestination.altitude)
+                ? ` Altitude GPS: ${selectedDestination.altitude.toFixed(1)} m.`
+                : " Altitude não informada pelo GPS.";
             locationPickerStatus.textContent =
-                `Posição do objeto: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}.`;
+                `Posição do objeto: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}.${altitudeStatus}`;
         }
 
         locationMap.on("click", event => {
             destinationSelectedManually = true;
             updateSelectedDestination(event.latlng.lat, event.latlng.lng);
-        });
-
-        destinationMarker.on("dragend", () => {
-            const position = destinationMarker.getLatLng();
-            destinationSelectedManually = true;
-            updateSelectedDestination(position.lat, position.lng);
         });
 
         function locateUser(selectUserLocationAsDestination) {
@@ -541,7 +542,8 @@
             navigator.geolocation.getCurrentPosition(position => {
                 currentPosition = {
                     latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
+                    longitude: position.coords.longitude,
+                    altitude: position.coords.altitude
                 };
                 if (userMarker) {
                     userMarker.setLatLng([currentPosition.latitude, currentPosition.longitude]);
@@ -553,6 +555,11 @@
                 }
                 if (selectUserLocationAsDestination && !destinationSelectedManually) {
                     updateSelectedDestination(currentPosition.latitude, currentPosition.longitude);
+                } else if (selectedDestination) {
+                    updateSelectedDestination(
+                        selectedDestination.latitude,
+                        selectedDestination.longitude
+                    );
                 }
                 locationMap.setView(
                     [currentPosition.latitude, currentPosition.longitude],
@@ -585,6 +592,12 @@
         });
 
         confirmLocationButton.addEventListener("click", () => {
+            if (!selectedDestination) {
+                locationPickerStatus.textContent =
+                    "Obtenha sua localização ou marque a posição do objeto no mapa.";
+                return;
+            }
+
             setObjectDestination(selectedDestination);
             locationDialog.hidden = true;
             updateNavigation();
@@ -804,7 +817,18 @@
             const userLat = e.detail.position.latitude;
             const userLon = e.detail.position.longitude;
 
-            currentPosition = { latitude: userLat, longitude: userLon };
+            currentPosition = {
+                latitude: userLat,
+                longitude: userLon,
+                altitude: e.detail.position.altitude
+            };
+            if (selectedDestination && !Number.isFinite(selectedDestination.altitude) &&
+                Number.isFinite(currentPosition.altitude)) {
+                updateSelectedDestination(
+                    selectedDestination.latitude,
+                    selectedDestination.longitude
+                );
+            }
             updateNavigation();
         });
     </script>
