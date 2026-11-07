@@ -430,7 +430,7 @@
         <a-camera gps-camera rotation-reader></a-camera>
 
         <a-entity id="objeto"
-            gps-entity-place="latitude: ; longitude: ; altitude: ">
+            gps-entity-place="latitude: -20.546606; longitude: -47.4173892; altitude: 210">
             <a-gltf-model id="modelo" src="./itens/eiffel_tower.glb" scale="2 2 2"
                 rotation="0 45 0"></a-gltf-model>
         </a-entity>
@@ -470,6 +470,13 @@
         let objectScaleFactor = 1;
         const minimumObjectScale = 0.1;
         const maximumObjectScale = 5;
+
+        function setObjectDestination(destination) {
+            gpsEntity.setAttribute(
+                "gps-entity-place",
+                `latitude: ${destination.latitude}; longitude: ${destination.longitude}; altitude: ${destination.altitude}`
+            );
+        }
 
         function updateObjectScale() {
             const scale = 2 * objectScaleFactor;
@@ -578,10 +585,7 @@
         });
 
         confirmLocationButton.addEventListener("click", () => {
-            gpsEntity.setAttribute(
-                "gps-entity-place",
-                `latitude: ${selectedDestination.latitude}; longitude: ${selectedDestination.longitude}; altitude: ${selectedDestination.altitude}`
-            );
+            setObjectDestination(selectedDestination);
             locationDialog.hidden = true;
             updateNavigation();
         });
