@@ -6,11 +6,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="../menu.css">
     <script src="../menu.js" defer></script>
     <style>
+        #locationDialog {
+            position: fixed;
+            inset: 0;
+            z-index: 20000;
+            display: grid;
+            place-items: center;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.72);
+            font-family: Arial, sans-serif;
+        }
+
+        #locationDialog[hidden] {
+            display: none;
+        }
+
+        .location-dialog-card {
+            width: min(620px, 100%);
+            max-height: 100%;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+        }
+
+        .location-dialog-card h1 {
+            margin-bottom: 8px;
+            color: #111827;
+            font-size: 22px;
+        }
+
+        .location-dialog-card p {
+            margin-bottom: 12px;
+            color: #374151;
+            line-height: 1.45;
+        }
+
+        #locationMap {
+            width: 100%;
+            height: min(48vh, 400px);
+            min-height: 250px;
+            margin: 12px 0;
+            border-radius: 10px;
+            background: #e5e7eb;
+        }
+
+        #locationPickerStatus {
+            min-height: 20px;
+            font-size: 14px;
+        }
+
+        .location-dialog-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .location-dialog-actions button {
+            min-height: 44px;
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        #locateUserButton {
+            margin-right: auto;
+            color: #111827;
+            background: #e5e7eb;
+        }
+
+        #confirmLocationButton {
+            color: #fff;
+            background: #047857;
+        }
+
+        #continueWithoutLocationButton {
+            color: #374151;
+            background: transparent;
+        }
+
         #navigationPanel {
             position: fixed;
             z-index: 9998;
@@ -110,25 +199,34 @@
 
 <body style="margin: 0; overflow: hidden;">
 
+    <section id="locationDialog" role="dialog" aria-modal="true" aria-labelledby="locationDialogTitle">
+        <div class="location-dialog-card">
+            <h1 id="locationDialogTitle">Defina a posição do objeto</h1>
+            <p>Use sua localização para centralizar o mapa. Toque no mapa ou arraste o marcador para escolher onde o objeto ficará.</p>
+            <div id="locationMap" aria-label="Mapa para selecionar a posição do objeto"></div>
+            <p id="locationPickerStatus" role="status" aria-live="polite">
+                Solicitaremos sua localização somente quando você tocar em “Usar minha localização”.
+            </p>
+            <div class="location-dialog-actions">
+                <button id="locateUserButton" type="button">Usar minha localização</button>
+                <button id="continueWithoutLocationButton" type="button">Continuar sem alterar</button>
+                <button id="confirmLocationButton" type="button">Confirmar posição</button>
+            </div>
+        </div>
+    </section>
+
     <span class="material-symbols-outlined open-menu" id="open_menu" aria-label="Abrir menu">menu</span>
 
     <nav id="menu" aria-label="Selecionar modelo">
         <span class="material-symbols-outlined" id="close_menu" aria-label="Fechar menu">close</span>
 
         <div id="modelButtons">
-            <button class="model-btn" data-src="../construcao/edificio_1.glb">Edifício 1</button>
-            <button class="model-btn" data-src="../construcao/edificio_2.glb">Edifício 2</button>
-            <button class="model-btn" data-src="../construcao/projeto_estrutural.glb">Projeto Estrutural</button>
-            <button class="model-btn" data-src="../construcao/casa_modelo_1.glb">Casa Modelo 1</button>
-            <button class="model-btn" data-src="../construcao/casa_modelo_2.glb">Casa Modelo 2</button>
-            <button class="model-btn" data-src="../construcao/modelo_casa_concreto.glb">Casa Modelo 3</button>
-            <button class="model-btn" data-src="../construcao/casa_modelo_4.glb">Casa Modelo 4</button>
-            <button class="model-btn" data-src="../construcao/casa_modelo_5.glb">Casa Modelo 5</button>
+
             <button class="model-btn active" data-src="../construcao/eiffel_tower.glb">Torre Eiffel</button>
             <button class="model-btn" data-src="../construcao/wtc.glb">World Trade Center</button>
-            <button class="model-btn" data-src="../construcao/sears_tower.glb">Sears Tower</button>
             <button class="model-btn" data-src="../construcao/torre_picasso_madrid.glb">Torre Picasso</button>
             <button class="model-btn" data-src="../construcao/Burj_al_arab.glb">Burj Al Arab</button>
+            
         </div>
     </nav>
 
@@ -161,18 +259,122 @@
 
     <script>
         const modelo = document.querySelector("#modelo");
+        const gpsEntity = document.querySelector("#objeto");
         const modelMenu = document.querySelector("#menu");
         const modelButtons = document.querySelectorAll(".model-btn");
         const navigationButton = document.querySelector("#navigationButton");
         const navigationStatus = document.querySelector("#navigationStatus");
         const navigationDistance = document.querySelector("#navigationDistance");
         const directionArrow = document.querySelector("#directionArrow");
+        const locationDialog = document.querySelector("#locationDialog");
+        const locationPickerStatus = document.querySelector("#locationPickerStatus");
+        const locateUserButton = document.querySelector("#locateUserButton");
+        const confirmLocationButton = document.querySelector("#confirmLocationButton");
+        const defaultDestination = { latitude: -20.546606, longitude: -47.4173892, altitude: 210 };
+        const locationMap = L.map("locationMap").setView(
+            [defaultDestination.latitude, defaultDestination.longitude],
+            15
+        );
+        let destinationMarker;
+        let userMarker = null;
+        let selectedDestination = { ...defaultDestination };
         let currentPosition = null;
         let currentHeading = null;
         let locationWatchId = null;
         let navigationActive = false;
         let locationError = null;
         let compassMessage = "Aponte o topo do celular para encontrar a direção.";
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(locationMap);
+
+        destinationMarker = L.marker(
+            [selectedDestination.latitude, selectedDestination.longitude],
+            { draggable: true }
+        ).addTo(locationMap);
+
+        function updateSelectedDestination(latitude, longitude) {
+            selectedDestination = {
+                latitude,
+                longitude,
+                altitude: defaultDestination.altitude
+            };
+            destinationMarker.setLatLng([latitude, longitude]);
+            locationPickerStatus.textContent =
+                `Posição do objeto: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}.`;
+        }
+
+        locationMap.on("click", event => {
+            updateSelectedDestination(event.latlng.lat, event.latlng.lng);
+        });
+
+        destinationMarker.on("dragend", () => {
+            const position = destinationMarker.getLatLng();
+            updateSelectedDestination(position.lat, position.lng);
+        });
+
+        locateUserButton.addEventListener("click", () => {
+            if (!navigator.geolocation) {
+                locationPickerStatus.textContent =
+                    "Este navegador não disponibiliza localização. Você ainda pode marcar o objeto no mapa.";
+                return;
+            }
+
+            locateUserButton.disabled = true;
+            locationPickerStatus.textContent = "Obtendo sua localização...";
+            navigator.geolocation.getCurrentPosition(position => {
+                currentPosition = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                };
+                if (userMarker) {
+                    userMarker.setLatLng([currentPosition.latitude, currentPosition.longitude]);
+                } else {
+                    userMarker = L.circleMarker(
+                        [currentPosition.latitude, currentPosition.longitude],
+                        { radius: 8, color: "#fff", weight: 2, fillColor: "#2563eb", fillOpacity: 1 }
+                    ).addTo(locationMap).bindPopup("Sua localização");
+                }
+                locationMap.setView(
+                    [currentPosition.latitude, currentPosition.longitude],
+                    17
+                );
+                locateUserButton.disabled = false;
+                locationPickerStatus.textContent =
+                    "Sua localização está no mapa. Toque ou arraste o marcador para definir o objeto.";
+                updateNavigation();
+            }, error => {
+                const messages = {
+                    1: "Acesso à localização negado. Permita o GPS ou marque o objeto manualmente.",
+                    2: "Sua localização não está disponível. Tente novamente ou marque o objeto manualmente.",
+                    3: "O GPS demorou para responder. Tente novamente ou marque o objeto manualmente."
+                };
+                locateUserButton.disabled = false;
+                locationPickerStatus.textContent =
+                    messages[error.code] || "Não foi possível obter sua localização. Marque o objeto no mapa.";
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 1000,
+                timeout: 15000
+            });
+        });
+
+        confirmLocationButton.addEventListener("click", () => {
+            gpsEntity.setAttribute(
+                "gps-entity-place",
+                `latitude: ${selectedDestination.latitude}; longitude: ${selectedDestination.longitude}; altitude: ${selectedDestination.altitude}`
+            );
+            locationDialog.hidden = true;
+            updateNavigation();
+        });
+
+        document.querySelector("#continueWithoutLocationButton").addEventListener("click", () => {
+            locationDialog.hidden = true;
+        });
+
+        requestAnimationFrame(() => locationMap.invalidateSize());
 
         modelButtons.forEach(button => {
             button.addEventListener("click", () => {
@@ -200,7 +402,7 @@
         }
 
         function getDestination() {
-            const gpsPlace = document.querySelector("#objeto").components["gps-entity-place"];
+            const gpsPlace = gpsEntity.components && gpsEntity.components["gps-entity-place"];
             return gpsPlace && gpsPlace.attrValue;
         }
 
