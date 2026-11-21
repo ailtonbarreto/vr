@@ -747,6 +747,12 @@
         });
 
         confirmLocationButton.addEventListener("click", () => {
+            if (destinationMarker) {
+                const markerPosition = destinationMarker.getLatLng();
+                destinationSelectedManually = true;
+                updateSelectedDestination(markerPosition.lat, markerPosition.lng);
+            }
+
             if (!selectedDestination) {
                 locationPickerStatus.textContent =
                     "Obtenha sua localização ou marque a posição do objeto no mapa.";
