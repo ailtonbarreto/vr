@@ -708,12 +708,20 @@
                         { radius: 8, color: "#fff", weight: 2, fillColor: "#2563eb", fillOpacity: 1 }
                     ).addTo(locationMap).bindPopup("Sua localização");
                 }
-                if (selectUserLocationAsDestination && !destinationSelectedManually) {
+                const selectingCurrentLocation =
+                    selectUserLocationAsDestination && !destinationSelectedManually;
+                if (selectingCurrentLocation) {
+                    destinationSelectedManually = true;
                     updateSelectedDestination(currentPosition.latitude, currentPosition.longitude);
                 } else if (selectedDestination) {
                     updateSelectedDestination(
                         selectedDestination.latitude,
                         selectedDestination.longitude
+                    );
+                } else {
+                    updateSelectedDestination(
+                        currentPosition.latitude,
+                        currentPosition.longitude
                     );
                 }
                 locationMap.setView(
@@ -722,9 +730,11 @@
                 );
                 locateUserButton.disabled = false;
                 locationPickerStatus.textContent =
-                    selectUserLocationAsDestination && !destinationSelectedManually
+                    selectingCurrentLocation
                         ? "Mapa centralizado na sua localização. O marcador do objeto começou ali; mova-o se necessário."
-                        : "Sua localização está no mapa. Toque ou arraste o marcador para definir o objeto.";
+                        : selectedDestination
+                            ? "Sua localização está no mapa. Toque ou arraste o marcador para definir o objeto."
+                            : "Sua localização está no mapa. Toque no mapa para marcar o objeto.";
                 updateNavigation();
             }, error => {
                 const messages = {
@@ -743,22 +753,18 @@
         }
 
         locateUserButton.addEventListener("click", () => {
-            locateUser(false);
+            locateUser(true);
         });
 
         confirmLocationButton.addEventListener("click", () => {
-            if (destinationMarker) {
-                const markerPosition = destinationMarker.getLatLng();
-                destinationSelectedManually = true;
-                updateSelectedDestination(markerPosition.lat, markerPosition.lng);
-            }
-
-            if (!selectedDestination) {
+            if (!destinationSelectedManually || !destinationMarker) {
                 locationPickerStatus.textContent =
-                    "Obtenha sua localização ou marque a posição do objeto no mapa.";
+                    "Toque no mapa, arraste o pin ou use sua localização antes de confirmar.";
                 return;
             }
 
+            const markerPosition = destinationMarker.getLatLng();
+            updateSelectedDestination(markerPosition.lat, markerPosition.lng);
             setObjectDestination(selectedDestination);
             saveDestination(selectedDestination);
             locationDialog.hidden = true;
@@ -771,7 +777,7 @@
 
         requestAnimationFrame(() => locationMap.invalidateSize());
         locateUserButton.disabled = true;
-        locateUser(true);
+        locateUser(false);
 
         modelButtons.forEach(button => {
             button.addEventListener("click", () => {
