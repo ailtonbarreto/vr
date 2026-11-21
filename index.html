@@ -392,13 +392,13 @@
 
         <div id="modelButtons">
 
-            <button class="model-btn active" data-src="./itens/eiffel_tower.glb">Torre Eiffel</button>
-            <button class="model-btn" data-src="./itens/lamborghini_aventador.glb">Lamborghini Aventador</button>
-            <button class="model-btn" data-src="./itens/ferrari_f430.glb">Ferrari F430</button>
-            <button class="model-btn" data-src="./itens/sukhoi.glb">Caça Sukhoi</button>
-            <button class="model-btn" data-src="./itens/wtc.glb">World Trade Center</button>
-            <button class="model-btn" data-src="./itens/torre_picasso_madrid.glb">Torre Picasso</button>
-            <button class="model-btn" data-src="./itens/Burj_al_arab.glb">Burj Al Arab</button>
+            <button class="model-btn active" data-src="./itens/eiffel_tower.glb" data-world-size="330">Torre Eiffel</button>
+            <button class="model-btn" data-src="./itens/lamborghini_aventador.glb" data-world-size="4.8">Lamborghini Aventador</button>
+            <button class="model-btn" data-src="./itens/ferrari_f430.glb" data-world-size="4.5">Ferrari F430</button>
+            <button class="model-btn" data-src="./itens/sukhoi.glb" data-world-size="22">Caça Sukhoi</button>
+            <button class="model-btn" data-src="./itens/wtc.glb" data-world-size="417">World Trade Center</button>
+            <button class="model-btn" data-src="./itens/torre_picasso_madrid.glb" data-world-size="157">Torre Picasso</button>
+            <button class="model-btn" data-src="./itens/Burj_al_arab.glb" data-world-size="321">Burj Al Arab</button>
             
         </div>
     </nav>
@@ -484,6 +484,7 @@
         const decreaseObjectSizeButton = document.querySelector("#decreaseObjectSize");
         const increaseObjectSizeButton = document.querySelector("#increaseObjectSize");
         const objectSizeLabel = document.querySelector("#objectSizeLabel");
+        const gpsEntity = document.querySelector("#objeto");
         const modelMenu = document.querySelector("#menu");
         const modelButtons = document.querySelectorAll(".model-btn");
         const navigationButton = document.querySelector("#navigationButton");
@@ -506,6 +507,8 @@
         let locationError = null;
         let compassMessage = "Aponte o topo do celular para encontrar a direção.";
         let objectScaleFactor = 1;
+        let objectBaseScale = 2;
+        let modelWorldSize = null;
         const minimumObjectScale = 0.1;
         const maximumObjectScale = 5;
         const destinationStorageKey = "objectDestination";
@@ -514,7 +517,7 @@
             const altitude = Number.isFinite(destination.altitude)
                 ? `; altitude: ${destination.altitude}`
                 : "";
-            modelo.setAttribute(
+            gpsEntity.setAttribute(
                 "gps-entity-place",
                 `latitude: ${destination.latitude}; longitude: ${destination.longitude}${altitude}`
             );
@@ -531,7 +534,7 @@
                 return;
             }
 
-            const currentPosition = modelo.getAttribute("position") || { y: 0 };
+            const currentPosition = gpsEntity.getAttribute("position") || { y: 0 };
             // Convert the pin's coordinates to scene-local meters from the GPS origin.
             const longitudeDistance = calcularDistancia(
                 origin.latitude,
@@ -546,7 +549,7 @@
                 origin.longitude
             );
 
-            modelo.setAttribute("position", {
+            gpsEntity.setAttribute("position", {
                 x: longitudeDistance * (destination.longitude > origin.longitude ? 1 : -1),
                 y: currentPosition.y,
                 z: latitudeDistance * (destination.latitude > origin.latitude ? -1 : 1)
@@ -608,11 +611,29 @@
         });
 
         function updateObjectScale() {
-            const scale = 2 * objectScaleFactor;
+            const scale = objectBaseScale * objectScaleFactor;
             modelo.setAttribute("scale", `${scale} ${scale} ${scale}`);
             objectSizeLabel.textContent = `Tamanho: ${Math.round(objectScaleFactor * 100)}%`;
             decreaseObjectSizeButton.disabled = objectScaleFactor <= minimumObjectScale;
             increaseObjectSizeButton.disabled = objectScaleFactor >= maximumObjectScale;
+        }
+
+        function normalizeModelScale() {
+            const dimensions = new THREE.Box3()
+                .setFromObject(modelo.object3D)
+                .getSize(new THREE.Vector3());
+            const largestDimension = Math.max(dimensions.x, dimensions.y, dimensions.z);
+            const currentScale = modelo.getAttribute("scale").x;
+            const unscaledDimension = largestDimension / currentScale;
+
+            if (!Number.isFinite(modelWorldSize) || modelWorldSize <= 0 ||
+                !Number.isFinite(unscaledDimension) || unscaledDimension <= 0) {
+                navigationStatus.textContent = "Não foi possível ajustar a escala deste modelo.";
+                return;
+            }
+
+            objectBaseScale = modelWorldSize / unscaledDimension;
+            updateObjectScale();
         }
 
         decreaseObjectSizeButton.addEventListener("click", () => {
@@ -760,6 +781,7 @@
                 selectedDestination = destination;
                 destinationSelectedManually = true;
                 setObjectDestination(destination);
+                modelWorldSize = Number(button.dataset.worldSize);
                 modelo.setAttribute(
                     "src",
                     new URL(button.dataset.src, document.baseURI).href
@@ -771,6 +793,7 @@
         });
 
         modelo.addEventListener("model-loaded", () => {
+            normalizeModelScale();
             const destination = getSavedDestination();
             if (destination) {
                 selectedDestination = destination;
@@ -795,7 +818,7 @@
         }
 
         function getDestination() {
-            const gpsPlace = modelo.components && modelo.components["gps-entity-place"];
+            const gpsPlace = gpsEntity.components && gpsEntity.components["gps-entity-place"];
             return gpsPlace && gpsPlace.attrValue;
         }
 
@@ -983,6 +1006,10 @@
                     selectedDestination.latitude,
                     selectedDestination.longitude
                 );
+            }
+            const savedDestination = getSavedDestination();
+            if (savedDestination) {
+                positionModelAtDestination(savedDestination);
             }
             updateNavigation();
         });
