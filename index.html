@@ -430,12 +430,15 @@
         <a-camera gps-camera rotation-reader></a-camera>
 
         <a-entity id="objeto">
-            <a-gltf-model id="modelo" src="./itens/eiffel_tower.glb" scale="2 2 2"
+            <a-gltf-model id="modelo" src="" scale="2 2 2"
                 rotation="0 45 0"></a-gltf-model>
         </a-entity>
     </a-scene>
 
     <script>
+
+        sessionStorage.clear();
+
         const scene = document.querySelector("a-scene");
         const cameraEntity = scene.querySelector("[camera]");
         const modelo = document.querySelector("#modelo");
@@ -481,7 +484,6 @@
         const decreaseObjectSizeButton = document.querySelector("#decreaseObjectSize");
         const increaseObjectSizeButton = document.querySelector("#increaseObjectSize");
         const objectSizeLabel = document.querySelector("#objectSizeLabel");
-        const gpsEntity = document.querySelector("#objeto");
         const modelMenu = document.querySelector("#menu");
         const modelButtons = document.querySelectorAll(".model-btn");
         const navigationButton = document.querySelector("#navigationButton");
@@ -506,16 +508,104 @@
         let objectScaleFactor = 1;
         const minimumObjectScale = 0.1;
         const maximumObjectScale = 5;
+        const destinationStorageKey = "objectDestination";
 
         function setObjectDestination(destination) {
             const altitude = Number.isFinite(destination.altitude)
                 ? `; altitude: ${destination.altitude}`
                 : "";
-            gpsEntity.setAttribute(
+            modelo.setAttribute(
                 "gps-entity-place",
                 `latitude: ${destination.latitude}; longitude: ${destination.longitude}${altitude}`
             );
+
+            positionModelAtDestination(destination);
         }
+
+        function positionModelAtDestination(destination) {
+            const gpsCameraEntity = scene.querySelector("[gps-camera]");
+            const gpsCamera = gpsCameraEntity && gpsCameraEntity.components &&
+                gpsCameraEntity.components["gps-camera"];
+            const origin = gpsCamera && gpsCamera.originCoords;
+            if (!origin) {
+                return;
+            }
+
+            const currentPosition = modelo.getAttribute("position") || { y: 0 };
+            // Convert the pin's coordinates to scene-local meters from the GPS origin.
+            const longitudeDistance = calcularDistancia(
+                origin.latitude,
+                origin.longitude,
+                origin.latitude,
+                destination.longitude
+            );
+            const latitudeDistance = calcularDistancia(
+                origin.latitude,
+                origin.longitude,
+                destination.latitude,
+                origin.longitude
+            );
+
+            modelo.setAttribute("position", {
+                x: longitudeDistance * (destination.longitude > origin.longitude ? 1 : -1),
+                y: currentPosition.y,
+                z: latitudeDistance * (destination.latitude > origin.latitude ? -1 : 1)
+            });
+        }
+
+        function saveDestination(destination) {
+            try {
+                sessionStorage.setItem(destinationStorageKey, JSON.stringify(destination));
+            } catch (error) {
+                locationPickerStatus.textContent =
+                    "A posição foi selecionada, mas não pôde ser salva nesta sessão.";
+            }
+        }
+
+        function getSavedDestination() {
+            const savedDestination = sessionStorage.getItem(destinationStorageKey);
+            if (!savedDestination) {
+                return null;
+            }
+
+            let destination;
+            try {
+                destination = JSON.parse(savedDestination);
+            } catch (error) {
+                sessionStorage.removeItem(destinationStorageKey);
+                return null;
+            }
+
+            if (!destination || typeof destination !== "object" ||
+                !Number.isFinite(destination.latitude) ||
+                destination.latitude < -90 || destination.latitude > 90 ||
+                !Number.isFinite(destination.longitude) ||
+                destination.longitude < -180 || destination.longitude > 180) {
+                sessionStorage.removeItem(destinationStorageKey);
+                return null;
+            }
+
+            return {
+                latitude: destination.latitude,
+                longitude: destination.longitude,
+                altitude: Number.isFinite(destination.altitude) ? destination.altitude : null
+            };
+        }
+
+        const savedDestination = getSavedDestination();
+        if (savedDestination) {
+            selectedDestination = savedDestination;
+            destinationSelectedManually = true;
+            setObjectDestination(savedDestination);
+            locationDialog.hidden = true;
+        }
+
+        window.addEventListener("gps-camera-origin-coord-set", () => {
+            const destination = getSavedDestination();
+            if (destination) {
+                positionModelAtDestination(destination);
+            }
+        });
 
         function updateObjectScale() {
             const scale = 2 * objectScaleFactor;
@@ -563,6 +653,9 @@
                 : " Altitude não informada pelo GPS.";
             locationPickerStatus.textContent =
                 `Posição do objeto: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}.${altitudeStatus}`;
+            if (destinationSelectedManually) {
+                saveDestination(selectedDestination);
+            }
         }
 
         locationMap.on("click", event => {
@@ -640,6 +733,7 @@
             }
 
             setObjectDestination(selectedDestination);
+            saveDestination(selectedDestination);
             locationDialog.hidden = true;
             updateNavigation();
         });
@@ -654,6 +748,18 @@
 
         modelButtons.forEach(button => {
             button.addEventListener("click", () => {
+                const destination = getSavedDestination();
+                if (!destination) {
+                    locationDialog.hidden = false;
+                    locationPickerStatus.textContent =
+                        "Marque e confirme uma posição no mapa antes de escolher um objeto.";
+                    requestAnimationFrame(() => locationMap.invalidateSize());
+                    return;
+                }
+
+                selectedDestination = destination;
+                destinationSelectedManually = true;
+                setObjectDestination(destination);
                 modelo.setAttribute(
                     "src",
                     new URL(button.dataset.src, document.baseURI).href
@@ -662,6 +768,14 @@
                 button.classList.add("active");
                 modelMenu.classList.remove("open");
             });
+        });
+
+        modelo.addEventListener("model-loaded", () => {
+            const destination = getSavedDestination();
+            if (destination) {
+                selectedDestination = destination;
+                setObjectDestination(destination);
+            }
         });
 
         function normalizeAngle(angle) {
@@ -681,7 +795,7 @@
         }
 
         function getDestination() {
-            const gpsPlace = gpsEntity.components && gpsEntity.components["gps-entity-place"];
+            const gpsPlace = modelo.components && modelo.components["gps-entity-place"];
             return gpsPlace && gpsPlace.attrValue;
         }
 
